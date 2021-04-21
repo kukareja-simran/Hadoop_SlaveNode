@@ -1,0 +1,72 @@
+---
+# tasks file for Hadoop_datanode
+- name: Copy files on Datanode
+  copy:
+    src: "{{ item }}"
+    dest: "/root/"
+  loop:
+          - jdk-8u171-linux-x64.rpm
+          - hadoop-1.2.1-1.x86_64.rpm
+  register: files
+- debug:
+        var: files
+
+- name: Install java on dataenode
+  shell: "rpm -ivh jdk-8u171-linux-x64.rpm"
+  when: java.rc == 0
+  register: java
+- debug:
+        var: java
+
+- name: Install Hadoop on datanode
+  shell: "rpm -ivh hadoop-1.2.1-1.x86_64.rpm --force"
+  register: hadoop
+- debug:
+        var: hadoop
+
+- name: Creating workspace for datanode
+  file:
+    path: /{{ dn_folder }}
+    state: directory
+  register: folder
+- debug:
+        var: folder
+
+- name: Configuring hdfs-site.xml file
+  blockinfile:
+    path: /etc/hadoop/hdfs-site.xml
+    insertafter: "<configuration>"
+    block:
+            <property>
+            <name>fs.data.dir</name>
+            <value>{{ dn_folder }}</value>
+            </property>
+  register: hdfs_file
+- debug:
+        var: hdfs_file
+- name: Configuring core-site.xml file
+  blockinfile:
+    path: /etc/hadoop/core-site.xml
+    insertafter: "<configuration>"
+    block:
+            <property>
+            <name>dfs.default.name</name>
+            <value>hdfs://{{ nnip }}:{{ port_no }}</value>
+            </property>
+  register: core_file
+- debug:
+        var: core_file
+
+- name: Start Datanode
+  shell: "hadoop-daemon.sh start datanode"
+  register: status_dn
+- debug:
+        var: status_dn
+
+- name: Checking datanode service
+  shell: "jps"
+  register: jps
+- debug:
+        var: jps.stdout_lines
+
+
