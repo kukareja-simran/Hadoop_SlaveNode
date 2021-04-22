@@ -13,7 +13,6 @@
 
 - name: Install java on dataenode
   shell: "rpm -ivh jdk-8u171-linux-x64.rpm"
-  when: java.rc == 0
   register: java
 - debug:
         var: java
@@ -43,7 +42,7 @@
             </property>
   register: hdfs_file
 - debug:
-        var: hdfs_file
+        var: hdfs_file.msg
 - name: Configuring core-site.xml file
   blockinfile:
     path: /etc/hadoop/core-site.xml
@@ -55,7 +54,7 @@
             </property>
   register: core_file
 - debug:
-        var: core_file
+        var: core_file.msg
 
 - name: Start Datanode
   shell: "hadoop-daemon.sh start datanode"
